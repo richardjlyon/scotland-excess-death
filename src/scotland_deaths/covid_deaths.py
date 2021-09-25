@@ -105,9 +105,9 @@ class CovidDeaths:
         df_data = pd.pivot_table(
             df_data, index=df_data.index, columns=["Period", "Location"]
         )
-        # -> location, cause, period
-        df_data = df_data.swaplevel(0, 2, axis=1)
-        df_data = df_data.swaplevel(1, 2, axis=1)
+
+        # -> period, cause, location
+        df_data = df_data.swaplevel(0, 1, axis=1)
 
         return df_data
 

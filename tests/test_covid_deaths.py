@@ -23,8 +23,8 @@ def test_get_excess_deaths():
     cd = CovidDeaths(week_no=37)
     df = cd.get_excess_deaths()
 
-    assert cd.excess_death_df["Care Homes"]["Cancer"]["2021"]["2021-01-04"] == 68
+    assert cd.excess_death_df["2021"]["Cancer"]["Care Homes"]["2021-01-04"] == 68
     assert (
-        cd.excess_death_df["Other Institution"]["Other"]["(2015-2019)"]["2021-09-13"]
+        cd.excess_death_df["(2015-2019)"]["Other"]["Other Institution"]["2021-09-13"]
         == 1
     )
