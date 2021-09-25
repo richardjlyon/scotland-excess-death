@@ -137,7 +137,23 @@ class CovidDeaths:
 
         :return: dataframe, columns=["Covid", "non-Covid"]
         """
-        pass
+
+        # Sum deaths by location i.e. ('(2015-2019)', 'COVID-19', 'Care Homes') ->  ('(2015-2019)', 'COVID-19')
+        df = self.get_excess_deaths()
+        df = df.groupby(level=[0, 1], axis=1).sum()
+
+        causes = list(df["2021"].columns)
+        non_covid_causes = [c for c in causes if c != "COVID-19"]
+
+        df_data = pd.DataFrame(columns=["Covid", "non-Covid"])
+
+        # Compute excess deaths in each category
+        df_data["Covid"] = df["2021"]["COVID-19"] - df["(2015-2019)"]["COVID-19"]
+        df_data["non-Covid"] = df["2021"][non_covid_causes].sum(axis=1) - df[
+            "(2015-2019)"
+        ][non_covid_causes].sum(axis=1)
+
+        return df_data
 
     def get_row_list(self, start_row):
         """Get a list of rows suitable for passing to skiprows."""

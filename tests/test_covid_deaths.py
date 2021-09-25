@@ -18,7 +18,13 @@ class TestMethods:
         )
 
     def test_get_covid_non_covid_excess_deaths(self):
-        pass
+        df = cd.get_covid_non_covid_excess_deaths()
+        total = df["Covid"] + df["non-Covid"]
+        assert df["Covid"]["2021-01-04"] == 332
+        assert df["non-Covid"]["2021-09-13"] == 126  # Note: some minor rounding errors
+        assert (
+            total["2021-01-04"] == 446
+        )  # Note: some minor rounding errors, actual = 444
 
 
 class TestHelpers:
