@@ -10,13 +10,13 @@ from scotland_deaths import OUT_DIR
 from scotland_deaths.covid_deaths import CovidDeaths
 
 
-def plot_total_vs_actual_deaths(ax, df_deaths):
+def plot_total_vs_actual_deaths(ax, covid_deaths: CovidDeaths):
 
-    df_deaths = df_deaths.resample("D").interpolate("linear")
+    df_deaths = covid_deaths.get_all_deaths(resample=True)
 
     ax.plot(
         df_deaths.index,
-        df_deaths["Total deaths from all causes"],
+        df_deaths["Total deaths (2021)"],
         color="tab:blue",
         # marker="o",
         linewidth=3,
@@ -24,29 +24,29 @@ def plot_total_vs_actual_deaths(ax, df_deaths):
     )
     ax.plot(
         df_deaths.index,
-        df_deaths["Total deaths: average of corresponding"],
+        df_deaths["Average total deaths (2015-2019)"],
         color="grey",
         # marker="o",
         label="Average previous 5 years",
     )
     ax.fill_between(
         df_deaths.index,
-        df_deaths["Total deaths from all causes"],
-        df_deaths["Total deaths: average of corresponding"],
+        df_deaths["Total deaths (2021)"],
+        df_deaths["Average total deaths (2015-2019)"],
         where=(
-            df_deaths["Total deaths from all causes"]
-            >= df_deaths["Total deaths: average of corresponding"]
+            df_deaths["Total deaths (2021)"]
+            >= df_deaths["Average total deaths (2015-2019)"]
         ),
         color="tab:red",
         alpha=0.1,
     )
     ax.fill_between(
         df_deaths.index,
-        df_deaths["Total deaths from all causes"],
-        df_deaths["Total deaths: average of corresponding"],
+        df_deaths["Total deaths (2021)"],
+        df_deaths["Average total deaths (2015-2019)"],
         where=(
-            df_deaths["Total deaths from all causes"]
-            < df_deaths["Total deaths: average of corresponding"]
+            df_deaths["Total deaths (2021)"]
+            < df_deaths["Average total deaths (2015-2019)"]
         ),
         color="tab:green",
         alpha=0.1,
@@ -66,7 +66,6 @@ def plot_covid_vs_noncovid_deaths(ax, df_deaths):
 
     causes = list(df_n["2021"].columns)
     non_covid_causes = [c for c in causes if c != "COVID-19"]
-    print(non_covid_causes)
 
     df_data = pd.DataFrame(columns=["Covid", "non-Covid"])
     df_data["Covid"] = df_n["2021"]["COVID-19"] - df_n["(2015-2019)"]["COVID-19"]
@@ -138,15 +137,15 @@ def plot_covid_vs_noncovid_deaths(ax, df_deaths):
 
 
 if __name__ == "__main__":
-    c = CovidDeaths(week_no=37)
+    covid_deaths = CovidDeaths(week_no=37)
 
     fig, [ax1, ax2] = plt.subplots(2, 1)
     fig.set_size_inches(16, 10)
     fig.patch.set_facecolor("white")
     fig.suptitle("Why are Governments not talking about non-Covid excess deaths?")
 
-    plot_total_vs_actual_deaths(ax1, c.all_death_df)
-    plot_covid_vs_noncovid_deaths(ax2, c.excess_death_df)
+    plot_total_vs_actual_deaths(ax1, covid_deaths)
+    plot_covid_vs_noncovid_deaths(ax2, covid_deaths.get_excess_deaths())
     # plot_geriatric_vs_nongeriatric_deaths(ax3, c.excess_death_df)
 
     # non_geriatric_causes = ["Cancer", "Other"]

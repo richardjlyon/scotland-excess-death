@@ -25,18 +25,27 @@ class CovidDeaths:
 
         self.get_file()
 
-        self.all_death_df = self.get_all_deaths()
-        self.excess_death_df = self.get_excess_deaths()
-
     def get_file(self):
+        """Check file exists or download it from NRS."""
         filename = f"covid-deaths-21-data-week-{self.week_no}.xlsx"
         if not Path(self.datafile_path).is_file():
             url = f"https://www.nrscotland.gov.uk/files//statistics/covid19/{filename}"
             r = requests.get(url, allow_redirects=True)
             open(self.datafile_path, "wb").write(r.content)
 
-    def get_all_deaths(self) -> pd.DataFrame:
-        """Retrieve total deaths, 2021 and average (2015-2019)."""
+    def get_all_deaths(self, resample: bool = False) -> pd.DataFrame:
+        """
+        Extract total deaths from spreadsheet 'Table 2 (2021)'.
+
+        Example
+        -------
+        df = cd.get_all_deaths()
+        df["Total deaths (2021)"].plot()
+
+        :param resample: Resample to daily data if True (useful for area fills)
+        :return DataFrame, columns = ["Total deaths (2021)", "Average total deaths (2015-2019)"]
+        """
+
         df = pd.read_excel(
             self.datafile_path,
             sheet_name="Table 2 (2021)",
@@ -45,24 +54,29 @@ class CovidDeaths:
             skiprows=[0, 1, 2, 4, 5, 7, 8],
             skipfooter=103,
         ).T
-        return df
+        df.rename(
+            columns={
+                "Total deaths from all causes": "Total deaths (2021)",
+                "Total deaths: average of corresponding": "Average total deaths (2015-2019)",
+            },
+            inplace=True,
+        )
+        if resample:
+            df = df.resample("D").interpolate("linear")
 
-    def get_row_list(self, start_row):
-        """Get a list of rows suitable for passing to skiprows."""
-        rows_to_keep = [4] + list(range(start_row, start_row + 6))
-        all_rows = list(range(150))
-        skiprows = [row for row in all_rows if row not in rows_to_keep]
-        return skiprows
+        return df
 
     def get_excess_deaths(self) -> pd.DataFrame:
         """
-        Retrieve excess deaths, 2021 and average (2015-2019) organised by location.
+        Extract excess deaths, 2021 and average (2015-2019) from spreadsheet 'Table 2 (2021)',
+        and organise by period, cause, and location.
 
         example
         -------
-        deaths = df["Care Homes"]["Cancer"]["(2015-2019)"]
+        df = cd.get_excess_deaths()
+        df["(2015-2019)"]["Cancer"]["Care Homes"].plot()
 
-        :return: Dataframe with multiindex [location, cause, period] of deaths by week date
+        :return: Dataframe with multi-index [period, cause, and location] of deaths by week date
         """
 
         # Excel row numbers corresponding to the header of each sub-table
@@ -110,6 +124,27 @@ class CovidDeaths:
         df_data = df_data.swaplevel(0, 1, axis=1)
 
         return df_data
+
+    def get_covid_non_covid_excess_deaths(self, resample: bool = False) -> pd.DataFrame:
+        """
+        Reprocess the excess deaths dataframe to compute excess deaths grouped into "Covid" and "all other causes".
+        :param resample: Resample to daily data if True (useful for area fills)
+
+        Example
+        -------
+        df_data["Covid"].plot()
+        df_data["non Covid"].plot()
+
+        :return: dataframe, columns=["Covid", "non-Covid"]
+        """
+        pass
+
+    def get_row_list(self, start_row):
+        """Get a list of rows suitable for passing to skiprows."""
+        rows_to_keep = [4] + list(range(start_row, start_row + 6))
+        all_rows = list(range(150))
+        skiprows = [row for row in all_rows if row not in rows_to_keep]
+        return skiprows
 
     @property
     def datafile_name(self):
