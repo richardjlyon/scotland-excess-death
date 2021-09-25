@@ -1,0 +1,1 @@
+from .covid_deaths import CovidDeaths
