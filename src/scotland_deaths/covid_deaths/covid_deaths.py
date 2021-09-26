@@ -33,40 +33,7 @@ class CovidDeaths:
             r = requests.get(url, allow_redirects=True)
             open(self.datafile_path, "wb").write(r.content)
 
-    def all_deaths(self, resample: bool = False) -> pd.DataFrame:
-        """
-        Extract total deaths from spreadsheet 'Table 2 (2021)'.
-
-        Example
-        -------
-        df = cd.all_deaths()
-        df["Total deaths (2021)"].plot()
-
-        :param resample: Resample to daily data if True (useful for area fills)
-        :return DataFrame, columns = ["Total deaths (2021)", "Average total deaths (2015-2019)"]
-        """
-
-        df = pd.read_excel(
-            self.datafile_path,
-            sheet_name="Table 2 (2021)",
-            usecols=[0] + list(range(2, 2 + self.week_no)),
-            index_col=0,
-            skiprows=[0, 1, 2, 4, 5, 7, 8],
-            skipfooter=103,
-        ).T
-        df.rename(
-            columns={
-                "Total deaths from all causes": "Total deaths (2021)",
-                "Total deaths: average of corresponding": "Average total deaths (2015-2019)",
-            },
-            inplace=True,
-        )
-        if resample:
-            df = df.resample("D").interpolate("linear")
-
-        return df
-
-    def deaths_by_cause_and_location(self) -> pd.DataFrame:
+    def deaths_by_cause_and_location(self, daily: bool = False) -> pd.DataFrame:
         """
         Extract excess deaths, 2021 and average (2015-2019) from spreadsheet 'Table 2 (2021)',
         and organise by period, cause, and location.
@@ -76,6 +43,7 @@ class CovidDeaths:
         df = cd.deaths_by_cause_and_location()
         df["(2015-2019)"]["Cancer"]["Care Homes"].plot()
 
+        :param: daily If true, resample as daily
         :return: Dataframe with multi-index [period, cause, and location] of deaths by week date
         """
 
@@ -123,12 +91,17 @@ class CovidDeaths:
         # -> period, cause, location
         df_data = df_data.swaplevel(0, 1, axis=1)
 
+        if daily:
+            # spreadsheet gives weekly totals: compute daily
+            df_data = df_data / 7.0
+            df_data = df_data.resample("D").interpolate(method="quadratic")
+
         return df_data
 
-    def covid_non_covid_excess_deaths(self, resample: bool = False) -> pd.DataFrame:
+    def covid_non_covid_excess_deaths(self, daily: bool = False) -> pd.DataFrame:
         """
         Reprocess the excess deaths dataframe to compute excess deaths grouped into "Covid" and "all other causes".
-        :param resample: Resample to daily data if True (useful for area fills)
+        :param daily: Resample to daily data if True (useful for area fills)
 
         Example
         -------
@@ -152,6 +125,11 @@ class CovidDeaths:
         df_data["non-Covid"] = df["2021"][non_covid_causes].sum(axis=1) - df[
             "(2015-2019)"
         ][non_covid_causes].sum(axis=1)
+
+        if daily:
+            # spreadsheet gives weekly totals: compute daily
+            df_data = df_data / 7.0
+            df_data = df_data.resample("D").interpolate(method="quadratic")
 
         return df_data
 

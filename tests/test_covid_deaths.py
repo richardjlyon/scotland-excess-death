@@ -4,11 +4,6 @@ cd = CovidDeaths(week_no=37)
 
 
 class TestMethods:
-    def test_get_all_deaths(self):
-        all_deaths_df = cd.all_deaths()
-        assert all_deaths_df["Total deaths (2021)"].iloc[0] == 1720
-        assert all_deaths_df["Average total deaths (2015-2019)"].iloc[0] == 1276
-
     def test_excess_deaths_df(self):
         excess_deaths_df = cd.deaths_by_cause_and_location()
         assert excess_deaths_df["2021"]["Cancer"]["Care Homes"]["2021-01-04"] == 68

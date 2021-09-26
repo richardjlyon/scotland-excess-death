@@ -9,36 +9,73 @@ import matplotlib.pyplot as plt
 
 from scotland_deaths import OUT_DIR
 from scotland_deaths.covid_deaths import CovidDeaths
-from scotland_deaths.utils import new_chart
 
 if __name__ == "__main__":
 
+    plt.rcParams["axes.facecolor"] = (0.95, 0.95, 0.95)
+
     covid_deaths = CovidDeaths(week_no=37)
 
-    fig, ax = new_chart("Covid vs. non Covid death, Scotland 2021 vs. (2015-2019)")
+    df = covid_deaths.covid_non_covid_excess_deaths(daily=True)
 
-    df = covid_deaths.covid_non_covid_excess_deaths()
+    # plt.rcParams["axes.facecolor"] = (0.95, 0.95, 0.95)
 
-    ax.plot(
-        df.index,
-        df["non-Covid"],
-        color="tab:blue",
-        # marker="o",
+    # fig, ax = new_single_panel_chart(
+    #     "Covid vs. non Covid death, Scotland 2021 vs. (2015-2019)"
+    # )
+
+    fig, ax = plt.subplots(1, 1)
+    fig.set_size_inches(16, 6)
+    fig.suptitle("Covid vs. non Covid death, Scotland 2021 vs. (2015-2019)")
+
+    df["non-Covid"].plot(
+        ax=ax,
+        color="tab:red",
         linewidth=3,
         label="Cancer, Heart Disease, Stroke, Dementia, Altheimers, Respiratory, Other",
     )
-    ax.plot(df.index, df["Covid"], color="grey", label="Covid")
+    df["Covid"].plot(ax=ax, color="tab:blue", linewidth=3, label="Covid")
     ax.fill_between(
         df.index,
         df["Covid"],
-        df["non-Covid"],
+        0,
         color="tab:blue",
         alpha=0.1,
     )
+    ax.fill_between(
+        df.index,
+        df["non-Covid"],
+        0,
+        color="tab:red",
+        alpha=0.1,
+    )
 
-    ax.legend(loc=(0.52, 0.8))
-    ax.axhspan(0, -400, facecolor="g", alpha=0.1)
-    ax.axhspan(0, 400, facecolor="r", alpha=0.1)
+    ax.annotate(
+        "richardlyon.substack.com",
+        (0, 0),
+        (25, 25),
+        xycoords="figure points",
+        textcoords="offset pixels",
+        va="top",
+        color="grey",
+    )
+    ax.annotate(
+        "SOURCE: National Records of Scotland",
+        (0, 0),
+        (1300, 25),
+        xycoords="figure points",
+        textcoords="offset pixels",
+        va="top",
+        color="grey",
+    )
+
+    ax.legend()
+    ax.set_ylabel("Excess deaths")
+    # plt.grid(axis="y")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    ax.spines["left"].set_visible(False)
+    ax.spines["bottom"].set_visible(False)
 
     plt.savefig(OUT_DIR / "Excess Covid vs non Covid deaths 2021.png")
     plt.show()

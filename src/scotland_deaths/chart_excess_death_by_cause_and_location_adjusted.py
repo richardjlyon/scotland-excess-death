@@ -1,8 +1,9 @@
 """
-    chart_excess_death_by_cause_and_location.py
-    Richard Lyon, 24/09/21
+    chart_excess_death_by_cause_and_location_adjusted.py
+    Richard Lyon, 26/9/21
 
-    Generate a 6-panel chart that shows excess death by cause and location.
+    Generate a chart that estimates Covid excess death after accounting for respiratory and dementia
+    negative excess death.
 """
 
 import matplotlib.pyplot as plt
@@ -14,14 +15,15 @@ from scotland_deaths.utils import new_six_panel_chart
 if __name__ == "__main__":
 
     fig, [(ax1, ax2), (ax3, ax4), (ax5, ax6)] = new_six_panel_chart(
-        "Excess death by cause and location, Scotland 2021 vs (2015-2019)"
+        "Hypothetical excess death by cause and location assuming Covid has replaced Respiratory infection / Dementia / Alzheimers as cause of death, Scotland 2021 vs (2015-2019)"
     )
 
     covid_deaths = CovidDeaths(week_no=37)
+
     df = covid_deaths.deaths_by_cause_and_location(daily=True)
     df = df["2021"] - df["(2015-2019)"]
 
-    print(f"Total Covid deaths: {df['COVID-19'].sum().sum()}")
+    total_before = df["2021"].sum(axis=1).sum()
 
     causes = [
         (ax1, "COVID-19"),
@@ -31,6 +33,34 @@ if __name__ == "__main__":
         (ax5, "Dementia / Alzheimers"),
         (ax6, "Other"),
     ]
+
+    # adjust Covid to deduct negative excess deaths
+    for cause in ["Respiratory", "Dementia / Alzheimers"]:
+        df_neg, df_pos = df[cause].clip(upper=0), df[cause].clip(lower=0)
+        df["COVID-19"] = df["COVID-19"] + df_neg
+        df[cause] = df_pos
+
+    # adjust Covid to deduct negative excess care home death
+    for cause in [
+        "Cancer",
+        "Respiratory",
+        "Circulatory (heart disease and stroke)",
+        "Dementia / Alzheimers",
+        "Other",
+    ]:
+
+        df_neg, df_pos = df[cause]["Care Homes"].clip(upper=0), df[cause][
+            "Care Homes"
+        ].clip(lower=0)
+        df["COVID-19"]["Care Homes"] = df["COVID-19"]["Care Homes"] + df_neg
+        df[cause]["Care Homes"] = df_pos
+
+    # sanity check
+    total_after = df["2021"].sum(axis=1).sum()
+    assert total_before == total_after
+
+    print(f"Total Covid deaths: {df['COVID-19'].sum().sum()}")
+
     for ax, cause in causes:
 
         cause_df = df[cause]
@@ -60,5 +90,7 @@ if __name__ == "__main__":
         if ax == ax1:
             ax.legend(loc=("upper right"))
 
-    plt.savefig(OUT_DIR / "Excess death by cause and location, Scotland 2021.png")
+    plt.savefig(
+        OUT_DIR / "Hypothetical Excess death by cause and location, Scotland 2021.png"
+    )
     plt.show()
