@@ -33,13 +33,13 @@ class CovidDeaths:
             r = requests.get(url, allow_redirects=True)
             open(self.datafile_path, "wb").write(r.content)
 
-    def get_all_deaths(self, resample: bool = False) -> pd.DataFrame:
+    def all_deaths(self, resample: bool = False) -> pd.DataFrame:
         """
         Extract total deaths from spreadsheet 'Table 2 (2021)'.
 
         Example
         -------
-        df = cd.get_all_deaths()
+        df = cd.all_deaths()
         df["Total deaths (2021)"].plot()
 
         :param resample: Resample to daily data if True (useful for area fills)
@@ -66,14 +66,14 @@ class CovidDeaths:
 
         return df
 
-    def get_excess_deaths(self) -> pd.DataFrame:
+    def deaths_by_cause_and_location(self) -> pd.DataFrame:
         """
         Extract excess deaths, 2021 and average (2015-2019) from spreadsheet 'Table 2 (2021)',
         and organise by period, cause, and location.
 
         example
         -------
-        df = cd.get_excess_deaths()
+        df = cd.deaths_by_cause_and_location()
         df["(2015-2019)"]["Cancer"]["Care Homes"].plot()
 
         :return: Dataframe with multi-index [period, cause, and location] of deaths by week date
@@ -125,7 +125,7 @@ class CovidDeaths:
 
         return df_data
 
-    def get_covid_non_covid_excess_deaths(self, resample: bool = False) -> pd.DataFrame:
+    def covid_non_covid_excess_deaths(self, resample: bool = False) -> pd.DataFrame:
         """
         Reprocess the excess deaths dataframe to compute excess deaths grouped into "Covid" and "all other causes".
         :param resample: Resample to daily data if True (useful for area fills)
@@ -139,7 +139,7 @@ class CovidDeaths:
         """
 
         # Sum deaths by location i.e. ('(2015-2019)', 'COVID-19', 'Care Homes') ->  ('(2015-2019)', 'COVID-19')
-        df = self.get_excess_deaths()
+        df = self.deaths_by_cause_and_location()
         df = df.groupby(level=[0, 1], axis=1).sum()
 
         causes = list(df["2021"].columns)

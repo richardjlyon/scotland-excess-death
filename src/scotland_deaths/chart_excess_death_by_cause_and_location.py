@@ -15,7 +15,7 @@ if __name__ == "__main__":
     plt.rcParams['axes.facecolor'] = (0.95, 0.95, 0.95)
 
     covid_deaths = CovidDeaths(week_no=37)
-    df = covid_deaths.get_excess_deaths()
+    df = covid_deaths.deaths_by_cause_and_location()
     df = df["2021"] - df["(2015-2019)"]
     df = df.resample("D").interpolate(method="quadratic")
 

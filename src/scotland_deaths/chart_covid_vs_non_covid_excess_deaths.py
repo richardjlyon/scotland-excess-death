@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
     fig, ax = new_chart("Covid vs. non Covid death, Scotland 2021 vs. (2015-2019)")
 
-    df = covid_deaths.get_covid_non_covid_excess_deaths()
+    df = covid_deaths.covid_non_covid_excess_deaths()
 
     ax.plot(
         df.index,

@@ -5,12 +5,12 @@ cd = CovidDeaths(week_no=37)
 
 class TestMethods:
     def test_get_all_deaths(self):
-        all_deaths_df = cd.get_all_deaths()
+        all_deaths_df = cd.all_deaths()
         assert all_deaths_df["Total deaths (2021)"].iloc[0] == 1720
         assert all_deaths_df["Average total deaths (2015-2019)"].iloc[0] == 1276
 
     def test_excess_deaths_df(self):
-        excess_deaths_df = cd.get_excess_deaths()
+        excess_deaths_df = cd.deaths_by_cause_and_location()
         assert excess_deaths_df["2021"]["Cancer"]["Care Homes"]["2021-01-04"] == 68
         assert (
             excess_deaths_df["(2015-2019)"]["Other"]["Other Institution"]["2021-09-13"]
@@ -18,7 +18,7 @@ class TestMethods:
         )
 
     def test_get_covid_non_covid_excess_deaths(self):
-        df = cd.get_covid_non_covid_excess_deaths()
+        df = cd.covid_non_covid_excess_deaths()
         total = df["Covid"] + df["non-Covid"]
         assert df["Covid"]["2021-01-04"] == 332
         assert df["non-Covid"]["2021-09-13"] == 126  # Note: some minor rounding errors
