@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from scotland_deaths import OUT_DIR
 from scotland_deaths.covid_deaths import CovidDeaths
 
-if __name__ == "__main__":
+
+def chart_covid_vs_non_covid_excess_deaths():
 
     plt.rcParams["axes.facecolor"] = (0.95, 0.95, 0.95)
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
 
     fig, ax = plt.subplots(1, 1)
     fig.set_size_inches(16, 6)
-    fig.suptitle("Covid vs. non Covid death, Scotland 2021 vs. (2015-2019)")
+    fig.suptitle("Covid vs. non Covid excess death, Scotland 2021 vs. (2015-2019)")
 
     df["non-Covid"].plot(
         ax=ax,
@@ -79,3 +80,7 @@ if __name__ == "__main__":
 
     plt.savefig(OUT_DIR / "Excess Covid vs non Covid deaths 2021.png")
     plt.show()
+
+
+if __name__ == "__main__":
+    chart_covid_vs_non_covid_excess_deaths()

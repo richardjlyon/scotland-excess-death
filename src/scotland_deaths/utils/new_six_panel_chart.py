@@ -24,7 +24,7 @@ def new_six_panel_chart(title: str):
     ax1.annotate(
         "SOURCE: National Records of Scotland",
         (0, 0),
-        (1250, 50),
+        (1300, 50),
         xycoords="figure points",
         textcoords="offset pixels",
         va="top",

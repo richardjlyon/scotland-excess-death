@@ -11,7 +11,8 @@ from scotland_deaths import OUT_DIR
 from scotland_deaths.covid_deaths import CovidDeaths
 from scotland_deaths.utils import new_six_panel_chart
 
-if __name__ == "__main__":
+
+def chart_excess_death_by_cause_and_location():
 
     fig, [(ax1, ax2), (ax3, ax4), (ax5, ax6)] = new_six_panel_chart(
         "Excess death by cause and location, Scotland 2021 vs (2015-2019)"
@@ -62,3 +63,7 @@ if __name__ == "__main__":
 
     plt.savefig(OUT_DIR / "Excess death by cause and location, Scotland 2021.png")
     plt.show()
+
+
+if __name__ == "__main__":
+    chart_excess_death_by_cause_and_location()

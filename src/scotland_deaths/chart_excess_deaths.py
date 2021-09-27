@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from scotland_deaths import OUT_DIR
 from scotland_deaths.covid_deaths import CovidDeaths
 
-if __name__ == "__main__":
+
+def chart_excess_deaths():
 
     covid_deaths = CovidDeaths(week_no=37)
 
@@ -94,7 +95,7 @@ if __name__ == "__main__":
     ax1.annotate(
         "SOURCE: National Records of Scotland",
         (0, 0),
-        (1250, 25),
+        (1300, 25),
         xycoords="figure points",
         textcoords="offset pixels",
         va="top",
@@ -109,3 +110,7 @@ if __name__ == "__main__":
 
     plt.savefig(OUT_DIR / "Excess Deaths Scotland 2021.png")
     plt.show()
+
+
+if __name__ == "__main__":
+    chart_excess_deaths()

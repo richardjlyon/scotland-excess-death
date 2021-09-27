@@ -1,2 +1,1 @@
-from .new_single_panel_chart import new_single_panel_chart
 from .new_six_panel_chart import new_six_panel_chart

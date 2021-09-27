@@ -92,9 +92,22 @@ class CovidDeaths:
         df_data = df_data.swaplevel(0, 1, axis=1)
 
         if daily:
-            # spreadsheet gives weekly totals: compute daily
+            # Spreadsheet gives weekly totals: resample to compute daily
+            # Resampling alters the totals, so normalise to preserve
+
+            total_before_2021 = df_data["2021"].sum(axis=1).sum()
+            total_before_2015_2019 = df_data["(2015-2019)"].sum(axis=1).sum()
+
             df_data = df_data / 7.0
             df_data = df_data.resample("D").interpolate(method="quadratic")
+
+            total_after_2021 = df_data["2021"].sum(axis=1).sum()
+            total_after_2015_2019 = df_data["(2015-2019)"].sum(axis=1).sum()
+
+            df_data["2021"] = df_data["2021"] * total_before_2021 / total_after_2021
+            df_data["(2015-2019)"] = (
+                df_data["(2015-2019)"] * total_before_2015_2019 / total_after_2015_2019
+            )
 
         return df_data
 
