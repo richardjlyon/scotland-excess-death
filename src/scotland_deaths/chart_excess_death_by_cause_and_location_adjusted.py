@@ -16,15 +16,21 @@ from scotland_deaths.utils import new_six_panel_chart
 def chart_excess_death_by_cause_and_location_adjusted():
 
     fig, [(ax1, ax2), (ax3, ax4), (ax5, ax6)] = new_six_panel_chart(
-        "Hypothetical excess death by cause and location assuming Covid has replaced Respiratory infection / Dementia / Alzheimers as cause of death, Scotland 2021 vs (2015-2019)"
+        "Hypothetical excess death by cause and location assuming Covid accounts for Respiratory/Care Home negative excess, Scotland 2021 vs (2015-2019)"
     )
 
     covid_deaths = CovidDeaths(week_no=37)
 
     df = covid_deaths.deaths_by_cause_and_location(daily=True)
-    df = df["2021"] - df["(2015-2019)"]
+    df_excess = df["2021"] - df["(2015-2019)"]
 
-    total_before = df["2021"].sum(axis=1).sum()
+    total_before = df_excess["2021"].sum(axis=1).sum()
+
+    # starting Covid numbers
+    # print(df_excess["COVID-19"].loc["2021-05-01"])
+
+    # care home numbers
+    # print(df_excess.swaplevel(axis=1)["Care Homes"].loc["2021-05-01"])
 
     causes = [
         (ax1, "COVID-19"),
@@ -35,11 +41,11 @@ def chart_excess_death_by_cause_and_location_adjusted():
         (ax6, "Other"),
     ]
 
-    # adjust Covid to deduct negative excess deaths
+    # adjust Covid to deduct negative excess deaths for respiratory infection, dementia, add Alzheimers
     for cause in ["Respiratory", "Dementia / Alzheimers"]:
-        df_neg, df_pos = df[cause].clip(upper=0), df[cause].clip(lower=0)
-        df["COVID-19"] = df["COVID-19"] + df_neg
-        df[cause] = df_pos
+        df_neg, df_pos = df_excess[cause].clip(upper=0), df_excess[cause].clip(lower=0)
+        df_excess["COVID-19"] = df_excess["COVID-19"] + df_neg
+        df_excess[cause] = df_pos
 
     # adjust Covid to deduct negative excess care home death
     for cause in [
@@ -50,21 +56,25 @@ def chart_excess_death_by_cause_and_location_adjusted():
         "Other",
     ]:
 
-        df_neg, df_pos = df[cause]["Care Homes"].clip(upper=0), df[cause][
+        df_neg, df_pos = df_excess[cause]["Care Homes"].clip(upper=0), df_excess[cause][
             "Care Homes"
         ].clip(lower=0)
-        df["COVID-19"]["Care Homes"] = df["COVID-19"]["Care Homes"] + df_neg
-        df[cause]["Care Homes"] = df_pos
+        df_excess["COVID-19"]["Care Homes"] = (
+            df_excess["COVID-19"]["Care Homes"] + df_neg
+        )
+        df_excess[cause]["Care Homes"] = df_pos
 
     # sanity check
-    total_after = df["2021"].sum(axis=1).sum()
+    # print(df_excess["COVID-19"].loc["2021-05-01"])
+
+    total_after = df_excess["2021"].sum(axis=1).sum()
     assert total_before == total_after
 
-    print(f"Total Covid deaths: {df['COVID-19'].sum().sum()}")
+    # print(f"Total Covid deaths: {df_excess['COVID-19'].sum().sum()}")
 
     for ax, cause in causes:
 
-        cause_df = df[cause]
+        cause_df = df_excess[cause]
         total_df = cause_df.sum(axis=1)
 
         # split dataframe df into negative only and positive only values
@@ -94,7 +104,7 @@ def chart_excess_death_by_cause_and_location_adjusted():
     plt.savefig(
         OUT_DIR / "Hypothetical Excess death by cause and location, Scotland 2021.png"
     )
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":
