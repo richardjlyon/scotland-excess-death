@@ -1,4 +1,4 @@
-# Scotland Deaths
+# Scotland Excess Deaths
 
 24 Sep 2021
 
